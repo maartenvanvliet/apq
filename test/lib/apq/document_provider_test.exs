@@ -153,7 +153,7 @@ defmodule Apq.DocumentProviderTest do
 
     assert %{status: status, resp_body: resp_body} =
              conn(:post, "/", %{
-               "query" => %{ "a" => 1},
+               "query" => %{"a" => 1},
                "extensions" => %{
                  "persistedQuery" => %{"version" => 1, "sha256Hash" => digest}
                },
@@ -168,10 +168,11 @@ defmodule Apq.DocumentProviderTest do
     # Will fix with release of new absinthe_plug version
     assert status == 400
   end
+
   test "returns error with invalid hash and valid query" do
     assert %{status: status, resp_body: resp_body} =
              conn(:post, "/", %{
-              "query" => @query,
+               "query" => @query,
                "extensions" => %{
                  "persistedQuery" => %{"version" => 1, "sha256Hash" => %{"a" => 1}}
                },
@@ -186,7 +187,6 @@ defmodule Apq.DocumentProviderTest do
     # Will fix with release of new absinthe_plug version
     assert status == 400
   end
-
 
   test "returns error with invalid hash and no query" do
     assert %{status: status, resp_body: resp_body} =
