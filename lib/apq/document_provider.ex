@@ -25,6 +25,7 @@ defmodule Apq.DocumentProvider do
   """
   defmacro __using__(opts) do
     cache_provider = Keyword.fetch!(opts, :cache_provider)
+    cache_compiled = Keyword.get(opts, :cache_compiled, true)
 
     quote do
       require Logger
@@ -36,9 +37,14 @@ defmodule Apq.DocumentProvider do
       """
       def process(%{params: params} = request, _) do
         case process_params(params) do
-          {hash, nil} -> cache_get(request, hash)
-          {hash, query} -> cache_put(request, hash, query)
-          _ -> {:cont, request}
+          {hash, nil} ->
+            {:halt, %{request | document: {:apq_cache_get, nil, hash}}}
+
+          {hash, query} ->
+            {:halt, %{request | document: {:apq_cache_put, query, hash}}}
+
+          _ ->
+            {:cont, request}
         end
       end
 
@@ -50,56 +56,37 @@ defmodule Apq.DocumentProvider do
       This prepends the Apq Phase before the first Absinthe.Parse phase and handles
       Apq errors, cache hits and misses.
       """
-      def pipeline(%{pipeline: as_configured} = options) do
+      def pipeline(%{document: {_, _, hash}, pipeline: as_configured} = query) do
         as_configured
         |> Absinthe.Pipeline.insert_before(
           Absinthe.Phase.Parse,
           {
             Apq.Phase.ApqInput,
-            []
+            [cache_provider: unquote(cache_provider), cache_compiled: unquote(cache_compiled)]
           }
         )
+        |> maybe_cache_compiled(hash)
       end
 
-      defp cache_put(request, hash, query) when is_binary(query) and is_binary(hash) do
-        calculated_hash = :crypto.hash(:sha256, query) |> Base.encode16(case: :lower)
-
-        case calculated_hash == hash do
+      defp maybe_cache_compiled(pipeline, hash) do
+        case unquote(cache_compiled) do
           true ->
-            unquote(cache_provider).put(hash, query)
-            {:halt, %{request | document: {:apq_stored, query}}}
+            pipeline
+            |> Absinthe.Pipeline.insert_before(
+              Absinthe.Phase.Document.Variables,
+              {
+                Apq.Phase.CacheCompiled,
+                [
+                  cache_provider: unquote(cache_provider),
+                  cache_key: hash,
+                  cache_compiled: unquote(cache_compiled)
+                ]
+              }
+            )
 
-          false ->
-            {:halt, %{request | document: {:apq_hash_match_error, query}}}
+          _ ->
+            pipeline
         end
-      end
-
-      defp cache_put(request, hash, _) when is_binary(hash) do
-        {:halt, %{request | document: {:apq_query_format_error, nil}}}
-      end
-
-      defp cache_put(request, _hash, query) when is_binary(query) do
-        {:halt, %{request | document: {:apq_hash_format_error, nil}}}
-      end
-
-      defp cache_get(request, hash) when is_binary(hash) do
-        case unquote(cache_provider).get(hash) do
-          # Cache miss
-          {:ok, nil} ->
-            {:halt, %{request | document: {:apq_not_found_error, nil}}}
-
-          # Cache hit
-          {:ok, document} ->
-            {:halt, %{request | document: {:apq_found, document}}}
-
-          error ->
-            Logger.warn("Error occured getting cache entry for #{hash}")
-            {:cont, request}
-        end
-      end
-
-      defp cache_get(request, _) do
-        {:halt, %{request | document: {:apq_hash_format_error, nil}}}
       end
 
       defp process_params(%{
