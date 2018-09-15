@@ -148,6 +148,64 @@ defmodule Apq.DocumentProviderTest do
     assert resp_body == @result
   end
 
+  test "returns error with invalid query" do
+    digest = "bogus digest"
+
+    assert %{status: status, resp_body: resp_body} =
+             conn(:post, "/", %{
+               "query" => %{ "a" => 1},
+               "extensions" => %{
+                 "persistedQuery" => %{"version" => 1, "sha256Hash" => digest}
+               },
+               "variables" => %{"id" => "foo"}
+             })
+             |> put_req_header("content-type", "application/graphql")
+             |> plug_parser
+             |> Absinthe.Plug.call(@opts)
+
+    assert resp_body == ~s({\"errors\":[{\"message\":\"QueryFormatIncorrect\"}]})
+    # Should be 200 per https://github.com/absinthe-graphql/absinthe_plug/pull/156
+    # Will fix with release of new absinthe_plug version
+    assert status == 400
+  end
+  test "returns error with invalid hash and valid query" do
+    assert %{status: status, resp_body: resp_body} =
+             conn(:post, "/", %{
+              "query" => @query,
+               "extensions" => %{
+                 "persistedQuery" => %{"version" => 1, "sha256Hash" => %{"a" => 1}}
+               },
+               "variables" => %{"id" => "foo"}
+             })
+             |> put_req_header("content-type", "application/graphql")
+             |> plug_parser
+             |> Absinthe.Plug.call(@opts)
+
+    assert resp_body == ~s({\"errors\":[{\"message\":\"HashFormatIncorrect\"}]})
+    # Should be 200 per https://github.com/absinthe-graphql/absinthe_plug/pull/156
+    # Will fix with release of new absinthe_plug version
+    assert status == 400
+  end
+
+
+  test "returns error with invalid hash and no query" do
+    assert %{status: status, resp_body: resp_body} =
+             conn(:post, "/", %{
+               "extensions" => %{
+                 "persistedQuery" => %{"version" => 1, "sha256Hash" => %{"a" => 1}}
+               },
+               "variables" => %{"id" => "foo"}
+             })
+             |> put_req_header("content-type", "application/graphql")
+             |> plug_parser
+             |> Absinthe.Plug.call(@opts)
+
+    assert resp_body == ~s({\"errors\":[{\"message\":\"HashFormatIncorrect\"}]})
+    # Should be 200 per https://github.com/absinthe-graphql/absinthe_plug/pull/156
+    # Will fix with release of new absinthe_plug version
+    assert status == 400
+  end
+
   defp sha256_hexdigest(query) do
     :crypto.hash(:sha256, query) |> Base.encode16(case: :lower)
   end

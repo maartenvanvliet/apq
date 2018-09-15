@@ -61,7 +61,7 @@ defmodule Apq.DocumentProvider do
         )
       end
 
-      defp cache_put(request, hash, query) do
+      defp cache_put(request, hash, query) when is_binary(query) and is_binary(hash) do
         calculated_hash = :crypto.hash(:sha256, query) |> Base.encode16(case: :lower)
 
         case calculated_hash == hash do
@@ -74,7 +74,15 @@ defmodule Apq.DocumentProvider do
         end
       end
 
-      defp cache_get(request, hash) do
+      defp cache_put(request, hash, _) when is_binary(hash) do
+        {:halt, %{request | document: {:apq_query_format_error, nil}}}
+      end
+
+      defp cache_put(request, _hash, query) when is_binary(query) do
+        {:halt, %{request | document: {:apq_hash_format_error, nil}}}
+      end
+
+      defp cache_get(request, hash) when is_binary(hash) do
         case unquote(cache_provider).get(hash) do
           # Cache miss
           {:ok, nil} ->
@@ -88,6 +96,10 @@ defmodule Apq.DocumentProvider do
             Logger.warn("Error occured getting cache entry for #{hash}")
             {:cont, request}
         end
+      end
+
+      defp cache_get(request, _) do
+        {:halt, %{request | document: {:apq_hash_format_error, nil}}}
       end
 
       defp process_params(%{
