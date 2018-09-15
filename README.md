@@ -4,7 +4,7 @@
 
 Support for [Automatic Persisted Queries](https://www.apollographql.com/docs/guides/performance.html#automatic-persisted-queries) in Absinthe. 
 
-
+Complete example project is available [here](https://github.com/maartenvanvliet/apq_example)
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
@@ -61,6 +61,7 @@ Now we need to add the `ApqExample.Apq` module to the list of document providers
 
 This is it, if you query with a client that has support for Apq it should work with Absinthe.
 
+## Documentation
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
