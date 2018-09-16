@@ -50,7 +50,7 @@ defmodule Apq.DocumentProviderTest do
     test "sends persisted query hash in extensions without query and cache hit" do
       digest = sha256_hexdigest(@query)
 
-      blueprint = blueprint_before_variables_from_query(Apq.TestSchema, @query)
+      blueprint = Apq.BenchmarkUtils.blueprint_before_variables_from_query(Apq.TestSchema, @query)
 
       Apq.CacheMock
       |> expect(:get, fn ^digest -> {:ok, blueprint} end)
@@ -404,18 +404,6 @@ defmodule Apq.DocumentProviderTest do
       document_providers: [__MODULE__.ApqDocumentWithStringCacheMock],
       json_codec: Jason
     )
-  end
-
-  defp blueprint_before_variables_from_query(schema, query) do
-    pipeline = Absinthe.Pipeline.for_document(schema, [])
-
-    {:ok, blueprint, _} =
-      Absinthe.Pipeline.run(
-        query,
-        pipeline |> Absinthe.Pipeline.upto(Absinthe.Phase.Document.Variables)
-      )
-
-    blueprint
   end
 
   defp sha256_hexdigest(query) do
