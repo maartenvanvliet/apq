@@ -12,6 +12,7 @@ defmodule Apq.MixProject do
       deps: deps(),
       name: "Apq",
       description: "Support for Automatic Persisted Queries in Absinthe",
+      aliases: aliases(),
       package: [
         maintainers: ["Maarten van Vliet"],
         licenses: ["MIT"],
@@ -43,6 +44,13 @@ defmodule Apq.MixProject do
       {:jason, "~> 1.1", only: :test},
       {:ex_doc, "~> 0.19.1", only: :dev},
       {:mox, "~> 0.4", only: :test}
+    ]
+  end
+
+  defp aliases do
+    [
+      benchmark: ["test --only benchmark"],
+      test: ["test --exclude benchmark"]
     ]
   end
 end
