@@ -2,7 +2,9 @@
 
 [![Build Status](https://travis-ci.com/maartenvanvliet/apq.svg?branch=master)](https://travis-ci.com/maartenvanvliet/apq) [![Hex pm](http://img.shields.io/hexpm/v/apq.svg?style=flat)](https://hex.pm/packages/apq) [![Hex Docs](https://img.shields.io/badge/hex-docs-9768d1.svg)](https://hexdocs.pm/apq) [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Support for [Automatic Persisted Queries](https://www.apollographql.com/docs/guides/performance.html#automatic-persisted-queries) in Absinthe. 
+Support for [Automatic Persisted Queries](https://www.apollographql.com/docs/guides/performance.html#automatic-persisted-queries) in Absinthe. Query documents in GraphQL can be be of a significant size. Especially on mobile it may be beneficial to limit the size of the queries so fewer bytes go across the network. APQ uses a deterministic hash of the input query in a request. If the server does not know the hash the client can retry the request with the expanded query. The server can use this request to store the query in its cache.
+
+You'll need a GraphQL client that can use APQ, such as Apollo Client.
 
 Complete example project is available [here](https://github.com/maartenvanvliet/apq_example)
 
