@@ -10,6 +10,10 @@ defmodule Apq.DocumentProviderTest do
     use Apq.DocumentProvider, cache_provider: Apq.CacheMock
   end
 
+  defmodule ApqDocumentMaxFileSizeMock do
+    use Apq.DocumentProvider, cache_provider: Apq.CacheMock, max_query_size: 0
+  end
+
   @query """
   query FooQuery($id: ID!) {
     item(id: $id) {
@@ -201,6 +205,36 @@ defmodule Apq.DocumentProviderTest do
              |> Absinthe.Plug.call(@opts)
 
     assert resp_body == ~s({\"errors\":[{\"message\":\"HashFormatIncorrect\"}]})
+    # Should be 200 per https://github.com/absinthe-graphql/absinthe_plug/pull/156
+    # Will fix with release of new absinthe_plug version
+    assert status == 400
+  end
+
+  test "returns error when query size above max_query_size" do
+    digest = sha256_hexdigest(@query)
+
+    opts =
+      Absinthe.Plug.init(
+        schema: TestSchema,
+        document_providers: [
+          __MODULE__.ApqDocumentMaxFileSizeMock
+        ],
+        json_codec: Jason
+      )
+
+    assert %{status: status, resp_body: resp_body} =
+             conn(:post, "/", %{
+               "query" => @query,
+               "extensions" => %{
+                 "persistedQuery" => %{"version" => 1, "sha256Hash" => digest}
+               },
+               "variables" => %{"id" => "foo"}
+             })
+             |> put_req_header("content-type", "application/graphql")
+             |> plug_parser
+             |> Absinthe.Plug.call(opts)
+
+    assert resp_body == ~s({\"errors\":[{\"message\":\"PersistedQueryLargerThanMaxSize\"}]})
     # Should be 200 per https://github.com/absinthe-graphql/absinthe_plug/pull/156
     # Will fix with release of new absinthe_plug version
     assert status == 400

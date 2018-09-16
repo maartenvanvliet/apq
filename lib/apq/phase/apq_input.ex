@@ -8,6 +8,11 @@ defmodule Apq.Phase.ApqInput do
     message: "PersistedQueryNotFound"
   }
 
+  @query_max_size_error %Absinthe.Phase.Error{
+    phase: __MODULE__,
+    message: "PersistedQueryLargerThanMaxSize"
+  }
+
   @query_sha_match_error %Absinthe.Phase.Error{
     phase: __MODULE__,
     message: "ProvidedShaDoesNotMatch"
@@ -25,6 +30,10 @@ defmodule Apq.Phase.ApqInput do
 
   @doc false
   def run(_, options \\ [])
+
+  def run({:apq_query_max_size_error, _}, _options) do
+    result_with_error(@query_max_size_error)
+  end
 
   def run({:apq_not_found_error, _}, _options) do
     result_with_error(@query_not_found_error)

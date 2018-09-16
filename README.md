@@ -24,7 +24,10 @@ end
 Define a new module and `use Apq.DocumentProvider`:
 ```elixir
 defmodule ApqExample.Apq do
-   use Apq.DocumentProvider, cache_provider: ApqExample.Cache
+   use Apq.DocumentProvider, 
+    cache_provider: ApqExample.Cache,
+    max_query_size: 16384 #default
+
 end
 ```
 You'll need to implement a cache provider. This is up to you, in this example I use [Cachex](https://github.com/whitfin/cachex) but you could use a Genserver, Redis or anything else. 

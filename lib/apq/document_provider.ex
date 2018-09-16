@@ -5,6 +5,21 @@ defmodule Apq.DocumentProvider do
 
   ### Example
 
+  Define a new module and `use Apq.DocumentProvider`:
+  ```elixir
+  defmodule ApqExample.Apq do
+    use Apq.DocumentProvider,
+      cache_provider: ApqExample.Cache,
+      max_query_size: 16384 #default
+
+  end
+  ```
+
+  #### Options
+
+  - `:cache_provider` -- Module responsible for cache retrieval and placement. The cache provider needs to follow the `Apq.CacheProvider` behaviour.
+  - `:max_query_size` -- (Optional) Maximum number of bytes of the graphql query document. Defaults to 16384 bytes (16kb)
+
   Example configuration for using Apq in `Absinthe.Plug`. Same goes for configuring
   Phoenix.
 
@@ -23,12 +38,19 @@ defmodule Apq.DocumentProvider do
   provider available (`Absinthe.Plug.DocumentProvider.Default`).
 
   """
+
+  # Maximum query size
+  @max_query_size 16384
+
   defmacro __using__(opts) do
     cache_provider = Keyword.fetch!(opts, :cache_provider)
+    max_query_size = Keyword.get(opts, :max_query_size, @max_query_size)
 
     quote do
       require Logger
       @behaviour Absinthe.Plug.DocumentProvider
+
+      Module.put_attribute(__MODULE__, :max_query_size, unquote(max_query_size))
 
       @doc """
       Handles any requests with the Apq extensions and forwards those without
@@ -59,6 +81,10 @@ defmodule Apq.DocumentProvider do
             []
           }
         )
+      end
+
+      defp cache_put(request, hash, query) when byte_size(query) > @max_query_size do
+        {:halt, %{request | document: {:apq_query_max_size_error, nil}}}
       end
 
       defp cache_put(request, hash, query) when is_binary(query) and is_binary(hash) do
