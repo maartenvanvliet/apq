@@ -47,9 +47,8 @@ defmodule Apq.DocumentProviderTest do
              |> plug_parser
              |> Absinthe.Plug.call(@opts)
 
-    # Should be 200 per https://github.com/absinthe-graphql/absinthe_plug/pull/156
-    # Will fix with release of new absinthe_plug version
-    assert status == 400
+
+    assert status == 200
   end
 
   test "sends persisted query hash in extensions without query and cache hit" do
@@ -112,9 +111,8 @@ defmodule Apq.DocumentProviderTest do
              |> Absinthe.Plug.call(@opts)
 
     assert resp_body == ~s({\"errors\":[{\"message\":\"ProvidedShaDoesNotMatch\"}]})
-    # Should be 200 per https://github.com/absinthe-graphql/absinthe_plug/pull/156
-    # Will fix with release of new absinthe_plug version
-    assert status == 400
+
+    assert status == 200
   end
 
   test "does not halt on query without extensions" do
@@ -168,9 +166,8 @@ defmodule Apq.DocumentProviderTest do
              |> Absinthe.Plug.call(@opts)
 
     assert resp_body == ~s({\"errors\":[{\"message\":\"QueryFormatIncorrect\"}]})
-    # Should be 200 per https://github.com/absinthe-graphql/absinthe_plug/pull/156
-    # Will fix with release of new absinthe_plug version
-    assert status == 400
+
+    assert status == 200
   end
 
   test "returns error with invalid hash and valid query" do
@@ -187,9 +184,8 @@ defmodule Apq.DocumentProviderTest do
              |> Absinthe.Plug.call(@opts)
 
     assert resp_body == ~s({\"errors\":[{\"message\":\"HashFormatIncorrect\"}]})
-    # Should be 200 per https://github.com/absinthe-graphql/absinthe_plug/pull/156
-    # Will fix with release of new absinthe_plug version
-    assert status == 400
+
+    assert status == 200
   end
 
   test "returns error with invalid hash and no query" do
@@ -205,9 +201,8 @@ defmodule Apq.DocumentProviderTest do
              |> Absinthe.Plug.call(@opts)
 
     assert resp_body == ~s({\"errors\":[{\"message\":\"HashFormatIncorrect\"}]})
-    # Should be 200 per https://github.com/absinthe-graphql/absinthe_plug/pull/156
-    # Will fix with release of new absinthe_plug version
-    assert status == 400
+
+    assert status == 200
   end
 
   test "returns error when query size above max_query_size" do
@@ -235,9 +230,8 @@ defmodule Apq.DocumentProviderTest do
              |> Absinthe.Plug.call(opts)
 
     assert resp_body == ~s({\"errors\":[{\"message\":\"PersistedQueryLargerThanMaxSize\"}]})
-    # Should be 200 per https://github.com/absinthe-graphql/absinthe_plug/pull/156
-    # Will fix with release of new absinthe_plug version
-    assert status == 400
+
+    assert status == 200
   end
 
   defp sha256_hexdigest(query) do
