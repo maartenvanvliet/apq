@@ -20,10 +20,7 @@ def deps do
   ]
 end
 ```
-If request is returning a 400, you have to use the master branch of absinthe_plug as it should return a 200:
-```elixir
-{:absinthe_plug, git: "https://github.com/absinthe-graphql/absinthe_plug", branch: "master", override: true},
-```
+
 ## Examples
 
 Define a new module and `use Apq.DocumentProvider`:
