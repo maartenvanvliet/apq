@@ -47,7 +47,6 @@ defmodule Apq.DocumentProviderTest do
              |> plug_parser
              |> Absinthe.Plug.call(@opts)
 
-
     assert status == 200
   end
 
