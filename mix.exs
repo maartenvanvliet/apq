@@ -40,7 +40,7 @@ defmodule Apq.MixProject do
     [
       {:absinthe_plug, "~> 1.4.6"},
       {:jason, "~> 1.1", only: :test},
-      {:ex_doc, "~> 0.19.1", only: :dev},
+      {:ex_doc, "~> 0.20.0", only: :dev},
       {:mox, "~> 0.4", only: :test}
     ]
   end
