@@ -57,7 +57,12 @@ defmodule Apq.DocumentProvider do
       to the next document provider.
       """
       def process(%{params: params} = request, _) do
-        case process_params(params) do
+        processed_params =
+          params
+          |> format_params()
+          |> process_params()
+
+        case processed_params do
           {hash, nil} -> cache_get(request, hash)
           {hash, query} -> cache_put(request, hash, query)
           _ -> {:cont, request}
@@ -127,6 +132,12 @@ defmodule Apq.DocumentProvider do
       defp cache_get(request, _) do
         {:halt, %{request | document: {:apq_hash_format_error, nil}}}
       end
+
+      defp format_params(%{"extensions" => extensions} = params) when is_binary(extensions) do
+        Map.put(params, "extensions", Jason.decode!(extensions))
+      end
+
+      defp format_params(params), do: params
 
       defp process_params(%{
              "query" => query,

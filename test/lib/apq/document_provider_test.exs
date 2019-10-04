@@ -94,6 +94,27 @@ defmodule Apq.DocumentProviderTest do
     assert resp_body == @result
   end
 
+  test "decodes 'extensions' params if sent as JSON" do
+    digest = sha256_hexdigest(@query)
+    query = @query
+    extensions = Jason.encode!(%{"persistedQuery" => %{"version" => 1, "sha256Hash" => digest}})
+
+    Apq.CacheMock
+    |> expect(:put, fn ^digest, ^query -> {:ok, query} end)
+
+    assert %{status: 200, resp_body: resp_body} =
+             conn(:post, "/", %{
+               "query" => @query,
+               "extensions" => extensions,
+               "variables" => %{"id" => "foo"}
+             })
+             |> put_req_header("content-type", "application/graphql")
+             |> plug_parser
+             |> Absinthe.Plug.call(@opts)
+
+    assert resp_body == @result
+  end
+
   test "returns error when provided hash does not match calculated query hash" do
     digest = "bogus digest"
 
