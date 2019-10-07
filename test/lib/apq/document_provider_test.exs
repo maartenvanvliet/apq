@@ -103,7 +103,7 @@ defmodule Apq.DocumentProviderTest do
     |> expect(:put, fn ^digest, ^query -> {:ok, query} end)
 
     assert %{status: 200, resp_body: resp_body} =
-             conn(:post, "/", %{
+             conn(:get, "/", %{
                "query" => @query,
                "extensions" => extensions,
                "variables" => %{"id" => "foo"}
