@@ -104,8 +104,7 @@ defmodule Apq.DocumentProviderTest do
         schema: TestSchema,
         document_providers: [
           __MODULE__.ApqDocumentWithJsonCodec
-        ],
-        json_codec: Jason
+        ]
       )
 
     digest = sha256_hexdigest(@query)
