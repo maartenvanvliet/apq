@@ -137,8 +137,11 @@ defmodule Apq.DocumentProvider do
 
       defp format_params(%{"extensions" => extensions} = params) when is_binary(extensions) do
         case Kernel.function_exported?(unquote(json_codec), :decode!, 1) do
-          true -> Map.put(params, "extensions", unquote(json_codec).decode!(extensions))
-          _ -> raise RuntimeError, message: "json_codec must be specified and respond to decode!/1"
+          true ->
+            Map.put(params, "extensions", unquote(json_codec).decode!(extensions))
+
+          _ ->
+            raise RuntimeError, message: "json_codec must be specified and respond to decode!/1"
         end
       end
 

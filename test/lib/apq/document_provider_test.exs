@@ -142,7 +142,7 @@ defmodule Apq.DocumentProviderTest do
     assert_raise RuntimeError, "json_codec must be specified and respond to decode!/1", fn ->
       conn(:get, "/", %{
         "query" => @query,
-        "extensions" => extensions,
+        "extensions" => extensions
       })
       |> put_req_header("content-type", "application/graphql")
       |> plug_parser
