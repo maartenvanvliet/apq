@@ -139,7 +139,7 @@ defmodule Apq.DocumentProviderTest do
     digest = sha256_hexdigest(@query)
     extensions = Jason.encode!(%{"persistedQuery" => %{"version" => 1, "sha256Hash" => digest}})
 
-    assert_raise RuntimeError, "json_codec must be specified and response to decode!/1", fn ->
+    assert_raise RuntimeError, "json_codec must be specified and respond to decode!/1", fn ->
       conn(:get, "/", %{
         "query" => @query,
         "extensions" => extensions,
