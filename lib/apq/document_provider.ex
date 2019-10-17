@@ -45,6 +45,7 @@ defmodule Apq.DocumentProvider do
   defmacro __using__(opts) do
     cache_provider = Keyword.fetch!(opts, :cache_provider)
     max_query_size = Keyword.get(opts, :max_query_size, @max_query_size)
+    json_codec = Keyword.get(opts, :json_codec)
 
     quote do
       require Logger
@@ -134,7 +135,10 @@ defmodule Apq.DocumentProvider do
       end
 
       defp format_params(%{"extensions" => extensions} = params) when is_binary(extensions) do
-        Map.put(params, "extensions", Jason.decode!(extensions))
+        case Kernel.function_exported?(unquote(json_codec), :decode!, 1) do
+          true -> Map.put(params, "extensions", unquote(json_codec).decode!(extensions))
+          _ -> raise RuntimeError, message: "json_codec must be specified and response to decode!/1"
+        end
       end
 
       defp format_params(params), do: params

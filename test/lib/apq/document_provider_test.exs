@@ -10,6 +10,10 @@ defmodule Apq.DocumentProviderTest do
     use Apq.DocumentProvider, cache_provider: Apq.CacheMock
   end
 
+  defmodule ApqDocumentWithJsonCodec do
+    use Apq.DocumentProvider, cache_provider: Apq.CacheMock, json_codec: Jason
+  end
+
   defmodule ApqDocumentMaxFileSizeMock do
     use Apq.DocumentProvider, cache_provider: Apq.CacheMock, max_query_size: 0
   end
@@ -95,6 +99,15 @@ defmodule Apq.DocumentProviderTest do
   end
 
   test "decodes 'extensions' params if sent as JSON" do
+    opts =
+      Absinthe.Plug.init(
+        schema: TestSchema,
+        document_providers: [
+          __MODULE__.ApqDocumentWithJsonCodec
+        ],
+        json_codec: Jason
+      )
+
     digest = sha256_hexdigest(@query)
     query = @query
     extensions = Jason.encode!(%{"persistedQuery" => %{"version" => 1, "sha256Hash" => digest}})
@@ -110,9 +123,32 @@ defmodule Apq.DocumentProviderTest do
              })
              |> put_req_header("content-type", "application/graphql")
              |> plug_parser
-             |> Absinthe.Plug.call(@opts)
+             |> Absinthe.Plug.call(opts)
 
     assert resp_body == @result
+  end
+
+  test "raises a sensible error if params are JSON with no json_codec" do
+    opts =
+      Absinthe.Plug.init(
+        schema: TestSchema,
+        document_providers: [
+          __MODULE__.ApqDocumentWithCacheMock
+        ]
+      )
+
+    digest = sha256_hexdigest(@query)
+    extensions = Jason.encode!(%{"persistedQuery" => %{"version" => 1, "sha256Hash" => digest}})
+
+    assert_raise RuntimeError, "json_codec must be specified and response to decode!/1", fn ->
+      conn(:get, "/", %{
+        "query" => @query,
+        "extensions" => extensions,
+      })
+      |> put_req_header("content-type", "application/graphql")
+      |> plug_parser
+      |> Absinthe.Plug.call(opts)
+    end
   end
 
   test "returns error when provided hash does not match calculated query hash" do
