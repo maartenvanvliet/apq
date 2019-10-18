@@ -82,7 +82,7 @@ defmodule Apq.DocumentProvider do
       def pipeline(%{pipeline: as_configured} = options) do
         as_configured
         |> Absinthe.Pipeline.insert_before(
-          Absinthe.Phase.Parse,
+          Absinthe.Phase.Init,
           {
             Apq.Phase.ApqInput,
             []
