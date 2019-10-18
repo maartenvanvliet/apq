@@ -38,7 +38,8 @@ defmodule Apq.MixProject do
 
   defp deps do
     [
-      {:absinthe_plug, git: "https://github.com/absinthe-graphql/absinthe_plug.git", branch: "master"},
+      {:absinthe_plug,
+       git: "https://github.com/absinthe-graphql/absinthe_plug.git", branch: "master"},
       {:jason, "~> 1.1", only: [:dev, :test]},
       {:ex_doc, "~> 0.21.0", only: :dev},
       {:mox, "~> 0.4", only: :test},
