@@ -79,15 +79,32 @@ defmodule Apq.DocumentProvider do
       This prepends the Apq Phase before the first Absinthe.Parse phase and handles
       Apq errors, cache hits and misses.
       """
-      def pipeline(%{pipeline: as_configured} = options) do
+      # Absinthe 1.5 has Absinthe.Phase.Init as first phase, apq needs to be prepended
+      def pipeline(%{pipeline: [Absinthe.Phase.Init | _] = as_configured} = options) do
+        as_configured
+        |> Absinthe.Pipeline.insert_before(
+          Absinthe.Phase.Init,
+          {Apq.Phase.ApqInput, []}
+        )
+      end
+
+      # Absinthe 1.4 has Absinthe.Phase.Parse as first phase, apq needs to be prepended
+      def pipeline(%{pipeline: [{Absinthe.Phase.Parse, _} | _] = as_configured} = options) do
         as_configured
         |> Absinthe.Pipeline.insert_before(
           Absinthe.Phase.Parse,
-          {
-            Apq.Phase.ApqInput,
-            []
-          }
+          {Apq.Phase.ApqInput, []}
         )
+      end
+
+      def pipeline(%{pipeline: [phase | _]} = options) do
+        raise RuntimeError, """
+        APQ expects `Absinthe.Phase.Parse` as first phase (absinthe 1.4), or
+        `Absinthe.Phase.Init` (absinthe 1.5)
+
+        First phase in pipeline was: #{inspect(phase)}
+
+        """
       end
 
       defp cache_put(request, hash, query) when byte_size(query) > @max_query_size do
