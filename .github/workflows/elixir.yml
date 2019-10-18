@@ -15,6 +15,7 @@ jobs:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
       - name: Check formatting
+        if: matrix.elixir == '1.9.x'
         run: mix format --check-formatted
       - name: Install Dependencies
         run: mix deps.get
@@ -22,4 +23,3 @@ jobs:
         run: mix compile --warnings-as-errors
       - name: Run tests
         run: mix test  --cover
-        if: matrix.elixir == '1.9.x'
