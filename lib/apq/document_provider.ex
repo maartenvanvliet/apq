@@ -41,7 +41,7 @@ defmodule Apq.DocumentProvider do
   """
 
   # Maximum query size
-  @max_query_size 16384
+  @max_query_size 16_384
 
   defmacro __using__(opts) do
     cache_provider = Keyword.fetch!(opts, :cache_provider)

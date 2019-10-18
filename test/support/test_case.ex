@@ -1,4 +1,5 @@
 defmodule Apq.Plug.TestCase do
+  @moduledoc false
   defmacro __using__(_) do
     quote do
       use ExUnit.Case, async: true
