@@ -19,6 +19,9 @@ jobs:
         run: mix format --check-formatted
       - name: Install Dependencies
         run: mix deps.get
+      - name: Check style
+        if: matrix.elixir == '1.9.x'
+        run: mix credo --strict
       - name: Compile project
         run: mix compile --warnings-as-errors
       - name: Run tests
