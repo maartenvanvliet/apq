@@ -10,7 +10,7 @@ defmodule Apq.DocumentProvider do
   defmodule ApqExample.Apq do
     use Apq.DocumentProvider,
       cache_provider: ApqExample.Cache,
-      max_query_size: 16384 #default
+      max_query_size: 16384 # default
 
   end
   ```
@@ -18,7 +18,8 @@ defmodule Apq.DocumentProvider do
   #### Options
 
   - `:cache_provider` -- Module responsible for cache retrieval and placement. The cache provider needs to follow the `Apq.CacheProvider` behaviour.
-  - `:max_query_size` -- (Optional) Maximum number of bytes of the graphql query document. Defaults to 16384 bytes (16kb)
+  - `:max_query_size` -- (Optional) Maximum number of bytes of the graphql query document. Defaults to 16384 bytes (16kb).
+  - `:json_codec` -- (Optional) Only required if using GET for APQ's hashed queries.  Must respond to `decode!/1`.
 
   Example configuration for using Apq in `Absinthe.Plug`. Same goes for configuring
   Phoenix.
@@ -45,6 +46,7 @@ defmodule Apq.DocumentProvider do
   defmacro __using__(opts) do
     cache_provider = Keyword.fetch!(opts, :cache_provider)
     max_query_size = Keyword.get(opts, :max_query_size, @max_query_size)
+    json_codec = Keyword.get(opts, :json_codec)
 
     quote do
       require Logger
@@ -57,7 +59,12 @@ defmodule Apq.DocumentProvider do
       to the next document provider.
       """
       def process(%{params: params} = request, _) do
-        case process_params(params) do
+        processed_params =
+          params
+          |> format_params()
+          |> process_params()
+
+        case processed_params do
           {hash, nil} -> cache_get(request, hash)
           {hash, query} -> cache_put(request, hash, query)
           _ -> {:cont, request}
@@ -127,6 +134,18 @@ defmodule Apq.DocumentProvider do
       defp cache_get(request, _) do
         {:halt, %{request | document: {:apq_hash_format_error, nil}}}
       end
+
+      defp format_params(%{"extensions" => extensions} = params) when is_binary(extensions) do
+        case Kernel.function_exported?(unquote(json_codec), :decode!, 1) do
+          true ->
+            Map.put(params, "extensions", unquote(json_codec).decode!(extensions))
+
+          _ ->
+            raise RuntimeError, message: "json_codec must be specified and respond to decode!/1"
+        end
+      end
+
+      defp format_params(params), do: params
 
       defp process_params(%{
              "query" => query,
