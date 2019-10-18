@@ -16,12 +16,12 @@ defmodule Apq.MixProject do
         maintainers: ["Maarten van Vliet"],
         licenses: ["MIT"],
         links: %{"GitHub" => "https://github.com/maartenvanvliet/apq"},
-        files: ~w(LICENSE README.md lib mix.exs)
+        files: ~w(LICENSE README.md CHANGELOG.md lib mix.exs)
       ],
       source_url: "https://github.com/maartenvanvliet/apq",
       docs: [
         main: "readme",
-        extras: ["README.md"]
+        extras: ["README.md", "CHANGELOG.md"]
       ]
     ]
   end
