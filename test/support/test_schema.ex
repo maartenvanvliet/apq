@@ -1,4 +1,5 @@
 defmodule Apq.TestSchema do
+  @moduledoc false
   use Absinthe.Schema
 
   @items %{
