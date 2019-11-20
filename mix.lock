@@ -1,6 +1,6 @@
 %{
   "absinthe": {:hex, :absinthe, "1.5.0-beta.2", "960c7c4e7aec89ad951048ac374f527c34e3a8cad2053bad5e57bece13ab36b4", [:mix], [{:dataloader, "~> 1.0.0", [hex: :dataloader, repo: "hexpm", optional: true]}, {:decimal, "~> 1.0", [hex: :decimal, repo: "hexpm", optional: true]}, {:nimble_parsec, "~> 0.5", [hex: :nimble_parsec, repo: "hexpm", optional: false]}, {:telemetry, "~> 0.4.0", [hex: :telemetry, repo: "hexpm", optional: false]}], "hexpm"},
-  "absinthe_plug": {:git, "https://github.com/absinthe-graphql/absinthe_plug.git", "5dc0993a0a44f10be0ed69f90f73fe89c5440bd2", [branch: "master"]},
+  "absinthe_plug": {:git, "https://github.com/absinthe-graphql/absinthe_plug.git", "0bc5510a351096f313ea1d6feffda8b71c3ac816", [branch: "master"]},
   "bunt": {:hex, :bunt, "0.2.0", "951c6e801e8b1d2cbe58ebbd3e616a869061ddadcc4863d0a2182541acae9a38", [:mix], [], "hexpm"},
   "credo": {:hex, :credo, "1.1.5", "caec7a3cadd2e58609d7ee25b3931b129e739e070539ad1a0cd7efeeb47014f4", [:mix], [{:bunt, "~> 0.2.0", [hex: :bunt, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm"},
   "earmark": {:hex, :earmark, "1.3.5", "0db71c8290b5bc81cb0101a2a507a76dca659513984d683119ee722828b424f6", [:mix], [], "hexpm"},
