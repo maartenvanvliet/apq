@@ -10,7 +10,7 @@ jobs:
         elixir: [1.8.x, 1.9.x]
     steps:
       - uses: actions/checkout@v1.0.0
-      - uses: actions/setup-elixir@v1.0.0
+      - uses: actions/setup-elixir@v1.1.0
         with:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
@@ -21,7 +21,7 @@ jobs:
         run: mix deps.get
       - name: Check style
         if: matrix.elixir == '1.9.x'
-        run: mix credo --strict
+        run: mix credo --strict --format flycheck
       - name: Compile project
         run: mix compile --warnings-as-errors
       - name: Run tests
