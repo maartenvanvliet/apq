@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         otp: [21.x, 22.x]
-        elixir: [1.8.x, 1.9.x]
+        elixir: [1.8.x, 1.9.x, 1.10.x]
     steps:
       - uses: actions/checkout@v1.0.0
       - uses: actions/setup-elixir@v1.1.0
@@ -15,12 +15,12 @@ jobs:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
       - name: Check formatting
-        if: matrix.elixir == '1.9.x'
+        if: matrix.elixir == '1.10.x'
         run: mix format --check-formatted
       - name: Install Dependencies
         run: mix deps.get
       - name: Check style
-        if: matrix.elixir == '1.9.x'
+        if: matrix.elixir == '1.10.x'
         run: mix credo --strict --format flycheck
       - name: Compile project
         run: mix compile --warnings-as-errors
