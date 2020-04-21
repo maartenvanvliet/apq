@@ -43,7 +43,7 @@ defmodule Apq.MixProject do
       {:jason, "~> 1.1", only: [:dev, :test]},
       {:ex_doc, "~> 0.21.0", only: :dev},
       {:mox, "~> 0.4", only: :test},
-      {:credo, "~> 1.3.0", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.4.0", only: [:dev, :test], runtime: false}
     ]
   end
 end
