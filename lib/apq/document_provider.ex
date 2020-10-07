@@ -131,12 +131,12 @@ defmodule Apq.DocumentProvider do
   end
 
   defp cache_put(_cache_provider, request, _hash, query, max_query_size)
-      when byte_size(query) > max_query_size do
+       when byte_size(query) > max_query_size do
     {:halt, %{request | document: {:apq_query_max_size_error, nil}}}
   end
 
   defp cache_put(cache_provider, request, hash, query, _max_query_size)
-      when is_binary(query) and is_binary(hash) do
+       when is_binary(query) and is_binary(hash) do
     calculated_hash = :crypto.hash(:sha256, query) |> Base.encode16(case: :lower)
 
     case calculated_hash == hash do
@@ -178,7 +178,7 @@ defmodule Apq.DocumentProvider do
   end
 
   defp format_params(%{"extensions" => extensions} = params, json_codec)
-      when is_binary(extensions) do
+       when is_binary(extensions) do
     case Kernel.function_exported?(json_codec, :decode!, 1) do
       true ->
         Map.put(params, "extensions", json_codec.decode!(extensions))
@@ -191,15 +191,15 @@ defmodule Apq.DocumentProvider do
   defp format_params(params, _json_codec), do: params
 
   defp process_params(%{
-        "query" => query,
-        "extensions" => %{"persistedQuery" => %{"version" => 1, "sha256Hash" => hash}}
-      }) do
+         "query" => query,
+         "extensions" => %{"persistedQuery" => %{"version" => 1, "sha256Hash" => hash}}
+       }) do
     {hash, query}
   end
 
   defp process_params(%{
-        "extensions" => %{"persistedQuery" => %{"version" => 1, "sha256Hash" => hash}}
-      }) do
+         "extensions" => %{"persistedQuery" => %{"version" => 1, "sha256Hash" => hash}}
+       }) do
     {hash, nil}
   end
 
