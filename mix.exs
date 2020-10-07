@@ -40,9 +40,9 @@ defmodule Apq.MixProject do
     [
       {:absinthe_plug, "~> 1.4"},
       {:jason, "~> 1.1", only: [:dev, :test]},
-      {:ex_doc, "~> 0.22.0", only: :dev},
+      {:ex_doc, "~> 0.22", only: :dev},
       {:mox, "~> 1.0", only: :test},
-      {:credo, "~> 1.4.0", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 end
