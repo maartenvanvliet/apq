@@ -9,7 +9,7 @@ jobs:
         otp: [21.x, 22.x]
         elixir: [1.8.x, 1.9.x]
     steps:
-      - uses: actions/checkout@v1.0.0
+      - uses: actions/checkout@v2.3.3
       - uses: actions/setup-elixir@v1.4.2
         with:
           otp-version: ${{matrix.otp}}
