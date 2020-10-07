@@ -6,21 +6,28 @@ jobs:
     name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     strategy:
       matrix:
-        otp: [21.x, 22.x]
-        elixir: [1.8.x, 1.9.x]
+        include:
+          - elixir: 1.10.x
+            otp: 22.x
+          - elixir: 1.11.x
+            otp: 23.x
+            check_formatted: true
+            check_style: true
+
+
     steps:
       - uses: actions/checkout@v2.3.3
-      - uses: actions/setup-elixir@v1.4.2
+      - uses: actions/setup-elixir@v1.4.1
         with:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
       - name: Check formatting
-        if: matrix.elixir == '1.9.x'
+        if: matrix.check_formatted
         run: mix format --check-formatted
       - name: Install Dependencies
         run: mix deps.get
       - name: Check style
-        if: matrix.elixir == '1.9.x'
+        if: matrix.check_style
         run: mix credo --strict --format flycheck
       - name: Compile project
         run: mix compile --warnings-as-errors

@@ -6,7 +6,7 @@ defmodule Apq.MixProject do
     [
       app: :apq,
       version: @version,
-      elixir: "~> 1.7",
+      elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
