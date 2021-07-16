@@ -1,6 +1,6 @@
 # Apq
 
-[![Build Status](https://travis-ci.com/maartenvanvliet/apq.svg?branch=master)][build-status] [![Hex pm](http://img.shields.io/hexpm/v/apq.svg?style=flat)][hex-page] [![Hex Docs](https://img.shields.io/badge/hex-docs-9768d1.svg)][apq-hexdocs] [![License](https://img.shields.io/badge/License-MIT-blue.svg)][mit-license]
+![.github/workflows/elixir.yml](https://github.com/maartenvanvliet/apq/workflows/.github/workflows/elixir.yml/badge.svg) [![Hex pm](http://img.shields.io/hexpm/v/apq.svg?style=flat)][hex-page] [![Hex Docs](https://img.shields.io/badge/hex-docs-9768d1.svg)][apq-hexdocs] [![License](https://img.shields.io/badge/License-MIT-blue.svg)][mit-license]
 
 Support for [Automatic Persisted Queries][apq] in Absinthe. Query documents in GraphQL can be be of a significant size. Especially on mobile it may be beneficial to limit the size of the queries so fewer bytes go across the network. APQ uses a deterministic hash of the input query in a request. If the server does not know the hash the client can retry the request with the expanded query. The server can use this request to store the query in its cache.
 
