@@ -111,19 +111,9 @@ defmodule Apq.DocumentProvider do
     )
   end
 
-  # Absinthe 1.4 has Absinthe.Phase.Parse as first phase, apq needs to be prepended
-  def pipeline(%{pipeline: [{Absinthe.Phase.Parse, _} | _] = as_configured} = _options) do
-    as_configured
-    |> Absinthe.Pipeline.insert_before(
-      Absinthe.Phase.Parse,
-      {Apq.Phase.ApqInput, []}
-    )
-  end
-
   def pipeline(%{pipeline: [phase | _]} = _options) do
     raise RuntimeError, """
-    APQ expects `Absinthe.Phase.Parse` as first phase (absinthe 1.4), or
-    `Absinthe.Phase.Init` (absinthe 1.5)
+    APQ expects `Absinthe.Phase.Init` as first phase
 
     First phase in pipeline was: #{inspect(phase)}
 

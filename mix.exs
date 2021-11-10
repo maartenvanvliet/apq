@@ -38,7 +38,7 @@ defmodule Apq.MixProject do
 
   defp deps do
     [
-      {:absinthe_plug, "~> 1.4"},
+      {:absinthe_plug, "~> 1.5"},
       {:jason, "~> 1.1", only: [:dev, :test]},
       {:ex_doc, "~> 0.22", only: :dev},
       {:mox, "~> 1.0", only: :test},

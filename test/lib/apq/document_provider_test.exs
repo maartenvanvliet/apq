@@ -40,7 +40,7 @@ defmodule Apq.DocumentProviderTest do
     Apq.CacheMock
     |> expect(:get, fn ^digest -> {:ok, nil} end)
 
-    assert %{status: status, resp_body: resp_body} =
+    assert %{status: status, resp_body: _resp_body} =
              conn(:post, "/", %{
                "extensions" => %{
                  "persistedQuery" => %{"version" => 1, "sha256Hash" => digest}
