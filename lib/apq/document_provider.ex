@@ -20,6 +20,7 @@ defmodule Apq.DocumentProvider do
   - `:cache_provider` -- Module responsible for cache retrieval and placement. The cache provider needs to follow the `Apq.CacheProvider` behaviour.
   - `:max_query_size` -- (Optional) Maximum number of bytes of the graphql query document. Defaults to 16384 bytes (16kb).
   - `:json_codec` -- (Optional) Only required if using GET for APQ's hashed queries.  Must respond to `decode!/1`.
+  - `:strategy` -- Strategy whether to cache raw graphql strings, or the parsed/validated blueprint. Defaults to raw.
 
   Example configuration for using Apq in `Absinthe.Plug`. Same goes for configuring
   Phoenix.
@@ -49,6 +50,7 @@ defmodule Apq.DocumentProvider do
     cache_provider = Keyword.fetch!(opts, :cache_provider)
     max_query_size = Keyword.get(opts, :max_query_size, @max_query_size)
     json_codec = Keyword.get(opts, :json_codec)
+    strategy = Keyword.get(opts, :strategy, Apq.Strategy.RawQuery)
 
     quote do
       @behaviour Absinthe.Plug.DocumentProvider
@@ -56,19 +58,30 @@ defmodule Apq.DocumentProvider do
       Module.put_attribute(__MODULE__, :max_query_size, unquote(max_query_size))
 
       def pipeline(options) do
-        Apq.DocumentProvider.pipeline(options)
+        Apq.DocumentProvider.pipeline(options,
+          json_codec: unquote(json_codec),
+          strategy: unquote(strategy),
+          cache_provider: unquote(cache_provider)
+        )
       end
 
       @doc """
       Handles any requests with the Apq extensions and forwards those without
       to the next document provider.
       """
-      def process(%{params: params} = request, _) do
-        Apq.DocumentProvider.process(request,
-          json_codec: unquote(json_codec),
-          max_query_size: unquote(max_query_size),
-          cache_provider: unquote(cache_provider)
-        )
+      def process(%{params: params} = request, opts) do
+        opts =
+          Keyword.merge(
+            [
+              json_codec: unquote(json_codec),
+              max_query_size: unquote(max_query_size),
+              cache_provider: unquote(cache_provider),
+              strategy: unquote(strategy)
+            ],
+            opts
+          )
+
+        Apq.DocumentProvider.process(request, opts)
       end
 
       defoverridable pipeline: 1
@@ -79,93 +92,92 @@ defmodule Apq.DocumentProvider do
   Handles any requests with the Apq extensions and forwards those without
   to the next document provider.
   """
-  def process(%{params: params} = request, opts) do
+  def process(request, opts) do
     cache_provider = Keyword.fetch!(opts, :cache_provider)
     json_codec = Keyword.get(opts, :json_codec)
     max_query_size = Keyword.get(opts, :max_query_size)
 
     processed_params =
-      params
+      request.params
       |> format_params(json_codec)
       |> process_params()
 
     case processed_params do
-      {hash, nil} -> cache_get(cache_provider, request, hash)
-      {hash, query} -> cache_put(cache_provider, request, hash, query, max_query_size)
+      {hash, nil} -> get_document(cache_provider, request, hash)
+      {hash, query} -> store_document(request, hash, query, max_query_size)
       _ -> {:cont, request}
     end
   end
 
   @doc """
-  Determine the remaining pipeline for an request with an apq document.
-
-  This prepends the Apq Phase before the first Absinthe.Parse phase and handles
-  Apq errors, cache hits and misses.
+  Determine the remaining pipeline for a request with an apq document.
   """
-  # Absinthe 1.5 has Absinthe.Phase.Init as first phase, apq needs to be prepended
-  def pipeline(%{pipeline: [Absinthe.Phase.Init | _] = as_configured} = _options) do
-    as_configured
-    |> Absinthe.Pipeline.insert_before(
-      Absinthe.Phase.Init,
-      {Apq.Phase.ApqInput, []}
-    )
+  def pipeline(%{pipeline: as_configured} = request, opts) do
+    opts[:strategy].pipeline(as_configured, [digest: request.document.digest] ++ opts)
   end
 
-  def pipeline(%{pipeline: [phase | _]} = _options) do
-    raise RuntimeError, """
-    APQ expects `Absinthe.Phase.Init` as first phase
-
-    First phase in pipeline was: #{inspect(phase)}
-
-    """
-  end
-
-  defp cache_put(_cache_provider, request, _hash, query, max_query_size)
+  defp store_document(request, _digest, query, max_query_size)
        when byte_size(query) > max_query_size do
-    {:halt, %{request | document: %Apq.Document{error: :apq_query_max_size_error}}}
+    {:halt, %{request | document: %Apq{error: :apq_query_max_size_error}}}
   end
 
-  defp cache_put(cache_provider, request, hash, query, _max_query_size)
-       when is_binary(query) and is_binary(hash) do
-    calculated_hash = :crypto.hash(:sha256, query) |> Base.encode16(case: :lower)
+  defp store_document(request, digest, query, _max_query_size)
+       when is_binary(query) and is_binary(digest) do
+    calculated_digest = Apq.Digest.digest(query)
 
-    case calculated_hash == hash do
+    case calculated_digest == digest do
       true ->
-        cache_provider.put(hash, query)
-        {:halt, %{request | document: %Apq.Document{action: :apq_stored, document: query}}}
+        {:halt,
+         %{
+           request
+           | document: %Apq{
+               action: :apq_stored,
+               document: query,
+               digest: digest
+             }
+         }}
 
       false ->
-        {:halt,
-         %{request | document: %Apq.Document{error: :apq_hash_match_error, document: query}}}
+        {:halt, %{request | document: %Apq{error: :apq_hash_match_error, document: query}}}
     end
   end
 
-  defp cache_put(_cache_provider, request, hash, _, _max_query_size) when is_binary(hash) do
-    {:halt, %{request | document: %Apq.Document{error: :apq_query_format_error}}}
+  defp store_document(request, hash, _, _max_query_size)
+       when is_binary(hash) do
+    {:halt, %{request | document: %Apq{error: :apq_query_format_error}}}
   end
 
-  defp cache_put(_cache_provider, request, _hash, query, _max_query_size) when is_binary(query) do
-    {:halt, %{request | document: %Apq.Document{error: :apq_hash_format_error}}}
+  defp store_document(request, _hash, query, _max_query_size)
+       when is_binary(query) do
+    {:halt, %{request | document: %Apq{error: :apq_hash_format_error}}}
   end
 
-  defp cache_get(cache_provider, request, hash) when is_binary(hash) do
-    case cache_provider.get(hash) do
+  defp get_document(cache_provider, request, digest) when is_binary(digest) do
+    case cache_provider.get(digest) do
       # Cache miss
       {:ok, nil} ->
-        {:halt, %{request | document: %Apq.Document{error: :apq_not_found_error}}}
+        {:halt, %{request | document: %Apq{error: :apq_not_found_error}}}
 
       # Cache hit
       {:ok, document} ->
-        {:halt, %{request | document: %Apq.Document{action: :apq_found, document: document}}}
+        {:halt,
+         %{
+           request
+           | document: %Apq{
+               action: :apq_found,
+               document: document,
+               digest: digest
+             }
+         }}
 
       _error ->
-        Logger.warn("Error occured getting cache entry for #{hash}")
+        Logger.warn("Error occured getting cache entry for #{digest}")
         {:cont, request}
     end
   end
 
-  defp cache_get(_cache_provider, request, _) do
-    {:halt, %{request | document: %Apq.Document{error: :apq_hash_format_error}}}
+  defp get_document(_cache_provider, request, _) do
+    {:halt, %{request | document: %Apq{error: :apq_hash_format_error}}}
   end
 
   defp format_params(%{"extensions" => extensions} = params, json_codec)

@@ -11,7 +11,7 @@ defmodule Apq.CacheProvider do
   @doc """
   Get a query document given a hash from the cache
   """
-  @callback get(hash) :: {:ok | :error, query_doc | nil}
+  @callback get(hash) :: {:ok, query_doc} | {:error, nil}
 
   @doc """
   Put a query document in the cache with the hex-encoded sha256-hash as cache key

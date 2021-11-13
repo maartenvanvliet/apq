@@ -38,7 +38,10 @@ defmodule Apq.DocumentProviderTest do
     digest = sha256_hexdigest(@query)
 
     Apq.CacheMock
-    |> expect(:get, fn ^digest -> {:ok, nil} end)
+    |> expect(:get, fn incoming_digest ->
+      assert incoming_digest == digest
+      {:ok, nil}
+    end)
 
     assert %{status: status, resp_body: _resp_body} =
              conn(:post, "/", %{
@@ -58,7 +61,10 @@ defmodule Apq.DocumentProviderTest do
     digest = sha256_hexdigest(@query)
 
     Apq.CacheMock
-    |> expect(:get, fn ^digest -> {:ok, @query} end)
+    |> expect(:get, fn incoming_digest ->
+      assert incoming_digest == digest
+      {:ok, @query}
+    end)
 
     assert %{status: status, resp_body: resp_body} =
              conn(:post, "/", %{
@@ -81,7 +87,12 @@ defmodule Apq.DocumentProviderTest do
     query = @query
 
     Apq.CacheMock
-    |> expect(:put, fn ^digest, ^query -> {:ok, query} end)
+    |> expect(:put, fn incoming_digest, incoming_query ->
+      assert incoming_query == query
+      assert incoming_digest == digest
+
+      {:ok, query}
+    end)
 
     assert %{status: 200, resp_body: resp_body} =
              conn(:post, "/", %{
@@ -112,7 +123,12 @@ defmodule Apq.DocumentProviderTest do
     extensions = Jason.encode!(%{"persistedQuery" => %{"version" => 1, "sha256Hash" => digest}})
 
     Apq.CacheMock
-    |> expect(:put, fn ^digest, ^query -> {:ok, query} end)
+    |> expect(:put, fn incoming_digest, incoming_query ->
+      assert incoming_query == query
+      assert incoming_digest == digest
+
+      {:ok, query}
+    end)
 
     assert %{status: 200, resp_body: resp_body} =
              conn(:get, "/", %{
@@ -287,9 +303,5 @@ defmodule Apq.DocumentProviderTest do
     assert resp_body == ~s({\"errors\":[{\"message\":\"PersistedQueryLargerThanMaxSize\"}]})
 
     assert status == 200
-  end
-
-  defp sha256_hexdigest(query) do
-    :crypto.hash(:sha256, query) |> Base.encode16(case: :lower)
   end
 end

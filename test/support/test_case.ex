@@ -25,4 +25,8 @@ defmodule Apq.Plug.TestCase do
 
     Plug.Parsers.call(conn, opts)
   end
+
+  def sha256_hexdigest(query) do
+    :crypto.hash(:sha256, query) |> Base.encode16(case: :lower)
+  end
 end

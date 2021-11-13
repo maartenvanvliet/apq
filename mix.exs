@@ -10,6 +10,7 @@ defmodule Apq.MixProject do
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
+      aliases: aliases(),
       name: "Apq",
       description: "Support for Automatic Persisted Queries in Absinthe",
       package: [
@@ -34,7 +35,18 @@ defmodule Apq.MixProject do
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(:dev), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp aliases do
+    [
+      bench: &bench/1
+    ]
+  end
+
+  defp bench(arglist) do
+    Mix.Tasks.Run.run(["benchmark/apq.exs" | arglist])
+  end
 
   defp deps do
     [
@@ -42,7 +54,9 @@ defmodule Apq.MixProject do
       {:jason, "~> 1.1", only: [:dev, :test]},
       {:ex_doc, "~> 0.22", only: :dev},
       {:mox, "~> 1.0", only: :test},
-      {:credo, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:cachex, "~> 3.3", only: [:dev, :test]},
+      {:benchee, "~> 1.0", only: :dev}
     ]
   end
 end
