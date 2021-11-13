@@ -122,7 +122,7 @@ defmodule Apq.DocumentProvider do
 
   defp cache_put(_cache_provider, request, _hash, query, max_query_size)
        when byte_size(query) > max_query_size do
-    {:halt, %{request | document: {:apq_query_max_size_error, nil}}}
+    {:halt, %{request | document: %Apq.Document{error: :apq_query_max_size_error}}}
   end
 
   defp cache_put(cache_provider, request, hash, query, _max_query_size)
@@ -132,30 +132,31 @@ defmodule Apq.DocumentProvider do
     case calculated_hash == hash do
       true ->
         cache_provider.put(hash, query)
-        {:halt, %{request | document: {:apq_stored, query}}}
+        {:halt, %{request | document: %Apq.Document{action: :apq_stored, document: query}}}
 
       false ->
-        {:halt, %{request | document: {:apq_hash_match_error, query}}}
+        {:halt,
+         %{request | document: %Apq.Document{error: :apq_hash_match_error, document: query}}}
     end
   end
 
   defp cache_put(_cache_provider, request, hash, _, _max_query_size) when is_binary(hash) do
-    {:halt, %{request | document: {:apq_query_format_error, nil}}}
+    {:halt, %{request | document: %Apq.Document{error: :apq_query_format_error}}}
   end
 
   defp cache_put(_cache_provider, request, _hash, query, _max_query_size) when is_binary(query) do
-    {:halt, %{request | document: {:apq_hash_format_error, nil}}}
+    {:halt, %{request | document: %Apq.Document{error: :apq_hash_format_error}}}
   end
 
   defp cache_get(cache_provider, request, hash) when is_binary(hash) do
     case cache_provider.get(hash) do
       # Cache miss
       {:ok, nil} ->
-        {:halt, %{request | document: {:apq_not_found_error, nil}}}
+        {:halt, %{request | document: %Apq.Document{error: :apq_not_found_error}}}
 
       # Cache hit
       {:ok, document} ->
-        {:halt, %{request | document: {:apq_found, document}}}
+        {:halt, %{request | document: %Apq.Document{action: :apq_found, document: document}}}
 
       _error ->
         Logger.warn("Error occured getting cache entry for #{hash}")
@@ -164,7 +165,7 @@ defmodule Apq.DocumentProvider do
   end
 
   defp cache_get(_cache_provider, request, _) do
-    {:halt, %{request | document: {:apq_hash_format_error, nil}}}
+    {:halt, %{request | document: %Apq.Document{error: :apq_hash_format_error}}}
   end
 
   defp format_params(%{"extensions" => extensions} = params, json_codec)

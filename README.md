@@ -24,9 +24,10 @@ end
 ## Examples
 
 Define a new module and `use Apq.DocumentProvider`:
+
 ```elixir
 defmodule ApqExample.Apq do
-   use Apq.DocumentProvider, 
+   use Apq.DocumentProvider,
     cache_provider: ApqExample.Cache,
     max_query_size: 16384 #default
 
@@ -37,18 +38,24 @@ If you're going to [use `GET` requests for APQ's hashed queries][apq-with-get], 
 
 ```elixir
 defmodule ApqExample.Apq do
-   use Apq.DocumentProvider, 
+   use Apq.DocumentProvider,
     json_codec: Jason
 
 end
 ```
+
 In a Phoenix project, this should be set with `Phoenix.json_library()`.
 
-You'll need to implement a cache provider. This is up to you, in this example I use [Cachex][cachex] but you could use a Genserver, Redis or anything else. 
+You'll need to implement a cache provider. This is up to you, the provider should implement `Apq.CacheProvidr`
+
+### Cachex cache provider
+
+In this example I use [Cachex][cachex].
 
 Define a module for the cache, e.g when using Cachex:
+
 ```elixir
-defmodule ApqExample.Cache do
+defmodule ApqExample.Cachex.Cache do
   @behaviour Apq.CacheProvider
 
   def get(hash) do
@@ -60,12 +67,45 @@ defmodule ApqExample.Cache do
   end
 end
 ```
-When using Cachex you'll need to start it in your supervision tree:
+
+You'll need to start it in your supervision tree:
+
 ```elixir
-worker(Cachex, [ :apq_cache, [ limit: 100 ] ])
+children = [
+  worker(Cachex, [ :apq_cache, [ limit: 100 ] ]),
+  #...
+]
+```
+
+### Redis cache provider
+
+Whe using Redis as a cache provider you can use the [Redix][redix] library.
+
+You'll need to start a connection to Redis.
+
+```elixir
+children = [
+  {Redix, name: :redix}
+  #...
+]
+```
+
+```elixir
+defmodule ApqExample.Redix do
+  @behaviour Apq.CacheProvider
+
+  def get(hash) do
+    Redix.command(:redix, ["GET", hash])
+  end
+
+  def put(hash, query) do
+    Redix.command(:redix, ["SET", hash, query])
+  end
+end
 ```
 
 Now we need to add the `ApqExample.Apq` module to the list of document providers. This goes in your router file.
+
 ```elixir
 match("/api",
   to: Absinthe.Plug,
@@ -77,6 +117,7 @@ match("/api",
   ]
 )
 ```
+
 This is it, if you query with a client that has support for Apq it should work with Absinthe.
 
 ## Documentation
@@ -85,15 +126,16 @@ Documentation can be generated with [ExDoc][exdoc]
 and published on [HexDocs][hexdocs]. Once published, the docs can
 be found at [https://hexdocs.pm/apq][hex-page].
 
-[build-status]: https://travis-ci.com/maartenvanvliet/apq
-[apq]: https://www.apollographql.com/docs/guides/performance.html#automatic-persisted-queries
-[hex-page]: https://hex.pm/packages/apq
 [apq-hexdocs]: https://hexdocs.pm/apq/readme.html
-[mit-license]: https://opensource.org/licenses/MIT
-[example-project]: https://github.com/maartenvanvliet/apq_example
 [apq-with-get]: https://www.apollographql.com/docs/apollo-server/performance/apq/#using-get-requests-with-apq-on-a-cdn
-[jason]: https://github.com/michalmuskala/jason
-[poison]: https://github.com/devinus/poison
+[apq]: https://www.apollographql.com/docs/guides/performance.html#automatic-persisted-queries
+[build-status]: https://travis-ci.com/maartenvanvliet/apq
 [cachex]: https://github.com/whitfin/cachex
+[example-project]: https://github.com/maartenvanvliet/apq_example
 [exdoc]: https://github.com/elixir-lang/ex_doc
+[hex-page]: https://hex.pm/packages/apq
 [hexdocs]: https://hexdocs.pm
+[jason]: https://github.com/michalmuskala/jason
+[mit-license]: https://opensource.org/licenses/MIT
+[poison]: https://github.com/devinus/poison
+[redix]: https://github.com/whatyouhide/redix

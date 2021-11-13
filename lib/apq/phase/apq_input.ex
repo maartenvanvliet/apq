@@ -3,6 +3,8 @@ defmodule Apq.Phase.ApqInput do
 
   use Absinthe.Phase
 
+  alias Apq.Document
+
   @query_not_found_error %Absinthe.Phase.Error{
     phase: __MODULE__,
     message: "PersistedQueryNotFound"
@@ -31,31 +33,31 @@ defmodule Apq.Phase.ApqInput do
   @doc false
   def run(_, options \\ [])
 
-  def run({:apq_query_max_size_error, _}, _options) do
+  def run(%Document{error: :apq_query_max_size_error}, _options) do
     result_with_error(@query_max_size_error)
   end
 
-  def run({:apq_not_found_error, _}, _options) do
+  def run(%Document{error: :apq_not_found_error}, _options) do
     result_with_error(@query_not_found_error)
   end
 
-  def run({:apq_hash_match_error, _}, _options) do
+  def run(%Document{error: :apq_hash_match_error}, _options) do
     result_with_error(@query_sha_match_error)
   end
 
-  def run({:apq_query_format_error, _}, _options) do
+  def run(%Document{error: :apq_query_format_error}, _options) do
     result_with_error(@query_format_error)
   end
 
-  def run({:apq_hash_format_error, _}, _options) do
+  def run(%Document{error: :apq_hash_format_error}, _options) do
     result_with_error(@hash_format_error)
   end
 
-  def run({:apq_found, document}, _options) do
+  def run(%Document{action: :apq_found, document: document}, _options) do
     {:ok, document}
   end
 
-  def run({:apq_stored, input}, _options) do
+  def run(%Document{action: :apq_stored, document: input}, _options) do
     {:ok, input}
   end
 
