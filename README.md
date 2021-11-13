@@ -16,7 +16,7 @@ by adding `apq` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:apq, "~> 1.2"}
+    {:apq, "~> 2.0"}
   ]
 end
 ```
