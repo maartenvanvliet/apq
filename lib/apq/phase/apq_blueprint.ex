@@ -9,11 +9,14 @@ defmodule Apq.Phase.ApqBlueprint do
 
   use Absinthe.Phase
 
+  alias Absinthe.Phase.Document.Context
+  alias Apq.Phase.Error
+
   @doc false
   def run(_, options \\ [])
 
   def run(%Apq{action: :apq_found, document: document}, _options) do
-    {:jump, document, Absinthe.Phase.Document.Context}
+    {:jump, document, Context}
   end
 
   def run(%Apq{action: :apq_stored, document: document}, _options) do
@@ -21,6 +24,6 @@ defmodule Apq.Phase.ApqBlueprint do
   end
 
   def run(%Apq{error: error}, _options) do
-    Apq.Phase.Error.build_error(error)
+    Error.build_error(error)
   end
 end

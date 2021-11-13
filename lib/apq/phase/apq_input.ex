@@ -3,6 +3,7 @@ defmodule Apq.Phase.ApqRawInput do
 
   use Absinthe.Phase
 
+  alias Apq.Phase.Error
   @doc false
   def run(_, options \\ [])
 
@@ -20,6 +21,6 @@ defmodule Apq.Phase.ApqRawInput do
   end
 
   def run(%Apq{error: error}, _options) do
-    Apq.Phase.Error.build_error(error)
+    Error.build_error(error)
   end
 end
