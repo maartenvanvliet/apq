@@ -17,22 +17,21 @@ defmodule Apq do
               |> Map.from_struct()
               |> Map.to_list(),
             string != nil do
-          concat(Atom.to_string(key) <> ": ", render_value(string))
+          if key == :document do
+            concat([
+              Atom.to_string(key) <> ": ~S'''",
+              break("\n"),
+              string,
+              break("\n"),
+              "'''",
+              break("\n")
+            ])
+          else
+            concat(Atom.to_string(key) <> ": ", inspect(string))
+          end
         end
 
       container_doc("#Apq.Document<", list, ">", opts, fn str, _ -> str end)
-    end
-
-    defp render_value(val) when is_atom(val) do
-      ":" <> Atom.to_string(val)
-    end
-
-    defp render_value(val) when is_binary(val) do
-      concat([break("\n"), inspect(val)])
-    end
-
-    defp render_value(val) do
-      inspect(val)
     end
   end
 end
