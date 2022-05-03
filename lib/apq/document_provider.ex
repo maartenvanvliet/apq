@@ -171,7 +171,7 @@ defmodule Apq.DocumentProvider do
          }}
 
       _error ->
-        Logger.warn("Error occured getting cache entry for #{digest}")
+        Logger.warn("Error occurred getting cache entry for #{digest}")
         {:cont, request}
     end
   end
