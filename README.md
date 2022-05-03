@@ -81,7 +81,7 @@ children = [
 
 ### Redis cache provider
 
-Whe using Redis as a cache provider you can use the [Redix][redix] library.
+When using Redis as a cache provider you can use the [Redix][redix] library.
 
 You'll need to start a connection to Redis.
 
