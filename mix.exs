@@ -55,7 +55,7 @@ defmodule Apq.MixProject do
       {:ex_doc, "~> 0.22", only: :dev},
       {:mox, "~> 1.0", only: :test},
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:cachex, "~> 3.3", only: [:dev, :test]},
+      {:cachex, "~> 4.0", only: [:dev, :test]},
       {:benchee, "~> 1.0", only: :dev}
     ]
   end
